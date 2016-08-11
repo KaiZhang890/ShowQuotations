@@ -21,26 +21,26 @@
         return;
     }
     
-    NSUInteger column = 0; // Current column inside row
+    NSUInteger column = 0;
     CGFloat xOffset = 0.0;
     CGFloat yOffset = 0.0;
-    CGFloat contentWidth = 0.0; // To determine the contentSize
-    CGFloat contentHeight = 0.0; // To determine the contentSize
+    CGFloat contentWidth = 0.0;
+    CGFloat contentHeight = 0.0;
     
-    if (self.itemAttributes.count > 0) { // We don't enter in this if statement the first time, we enter the following times
+    if (self.itemAttributes.count > 0) {
         for (int section = 0; section < [self.collectionView numberOfSections]; section++) {
             NSUInteger numberOfItems = [self.collectionView numberOfItemsInSection:section];
             for (NSUInteger index = 0; index < numberOfItems; index++) {
-                if (section != 0 && index != 0) { // This is a content cell that shouldn't be sticked
+                if (section != 0 && index != 0) { // 不是第一行，也不是第一列
                     continue;
                 }
                 UICollectionViewLayoutAttributes *attributes = [self layoutAttributesForItemAtIndexPath:[NSIndexPath indexPathForItem:index inSection:section]];
-                if (section == 0) { // We stick the first row
+                if (section == 0) { // 保持第一行的位置
                     CGRect frame = attributes.frame;
                     frame.origin.y = self.collectionView.contentOffset.y;
                     attributes.frame = frame;
                 }
-                if (index == 0) { // We stick the first column
+                if (index == 0) { // 保持第一列的位置
                     CGRect frame = attributes.frame;
                     frame.origin.x = self.collectionView.contentOffset.x;
                     attributes.frame = frame;
@@ -51,44 +51,43 @@
         return;
     }
     
-    // The following code is only executed the first time we prepare the layout
     self.itemAttributes = [@[] mutableCopy];
-    
     NSUInteger numberOfItems = [self.collectionView numberOfItemsInSection:0];
     
-    // We loop through all items
     for (int section = 0; section < [self.collectionView numberOfSections]; section++) {
         NSMutableArray *sectionAttributes = [@[] mutableCopy];
         for (NSUInteger index = 0; index < numberOfItems; index++) {
             
+            // 所有单元格长度相同，也可以根据index设置不同
             NSString *testText = @"涨跌幅% \u2193";
             CGSize itemSize = [testText sizeWithAttributes: @{NSFontAttributeName:[UIFont systemFontOfSize:15]}];
             if (section == 0) {
+                // 第一行高：44
                 itemSize = CGSizeMake(itemSize.width, 44);
             } else {
+                // 其它行高：50
                 itemSize = CGSizeMake(itemSize.width, 50);
             }
                         
-            // We create the UICollectionViewLayoutAttributes object for each item and add it to our array.
-            // We will use this later in layoutAttributesForItemAtIndexPath:
+            // 为每一个单元格设置布局属性
             NSIndexPath *indexPath = [NSIndexPath indexPathForItem:index inSection:section];
             UICollectionViewLayoutAttributes *attributes = [UICollectionViewLayoutAttributes layoutAttributesForCellWithIndexPath:indexPath];
             attributes.frame = CGRectIntegral(CGRectMake(xOffset, yOffset, itemSize.width, itemSize.height));
             
             if (section == 0 && index == 0) {
-                attributes.zIndex = 1024; // Set this value for the first item (Sec0Row0) in order to make it visible over first column and first row
+                attributes.zIndex = 1024; // 置于最前
             } else if (section == 0 || index == 0) {
-                attributes.zIndex = 1023; // Set this value for the first row or section in order to set visible over the rest of the items
+                attributes.zIndex = 1023;
             }
             if (section == 0) {
                 CGRect frame = attributes.frame;
                 frame.origin.y = self.collectionView.contentOffset.y;
-                attributes.frame = frame; // Stick to the top
+                attributes.frame = frame; // 第一行的位置
             }
             if (index == 0) {
                 CGRect frame = attributes.frame;
                 frame.origin.x = self.collectionView.contentOffset.x;
-                attributes.frame = frame; // Stick to the left
+                attributes.frame = frame; // 第一列的位置
             }
             
             [sectionAttributes addObject:attributes];
@@ -96,13 +95,11 @@
             xOffset = xOffset+itemSize.width;
             column++;
             
-            // Create a new row if this was the last column
             if (column == numberOfItems) {
                 if (xOffset > contentWidth) {
                     contentWidth = xOffset;
                 }
                 
-                // Reset values
                 column = 0;
                 xOffset = 0;
                 yOffset += itemSize.height;
@@ -111,7 +108,7 @@
         [self.itemAttributes addObject:sectionAttributes];
     }
     
-    // Get the last item to calculate the total height of the content
+    // 根据最后一个单元格布局计算整个CollectionView的Size
     UICollectionViewLayoutAttributes *attributes = [[self.itemAttributes lastObject] lastObject];
     contentHeight = attributes.frame.origin.y+attributes.frame.size.height;
     self.contentSize = CGSizeMake(contentWidth, contentHeight);
@@ -137,7 +134,7 @@
 }
 
 - (BOOL)shouldInvalidateLayoutForBoundsChange:(CGRect)newBounds {
-    return YES; // Set this to YES to call prepareLayout on every scroll
+    return YES; // 每次滚动都调用prepareLayout
 }
 
 @end

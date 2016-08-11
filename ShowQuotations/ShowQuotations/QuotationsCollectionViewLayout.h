@@ -10,6 +10,6 @@
 
 @interface QuotationsCollectionViewLayout : UICollectionViewLayout
 
-@property (strong, nonatomic) NSMutableArray *itemAttributes;
+@property (strong, nonatomic) NSMutableArray *itemAttributes; // 表格数据量发生变化时，需清空这个数组
 
 @end
